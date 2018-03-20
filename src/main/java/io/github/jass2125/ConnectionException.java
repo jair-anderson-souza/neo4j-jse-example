@@ -12,8 +12,8 @@ package io.github.jass2125;
  */
 public class ConnectionException extends RuntimeException {
 
-    public ConnectionException(String sdf, Exception e) {
-        super(sdf, e);
+    public ConnectionException(String msg, Exception e) {
+        super(msg, e);
     }
 
 }

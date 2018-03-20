@@ -20,21 +20,21 @@ import org.neo4j.driver.v1.Values;
 public class ProductService implements Serializable {
 
     private ConnectionNeo4j connection;
+    private Driver driver;
 
     public ProductService() {
         this.connection = new ConnectionNeo4j();
+        this.driver = this.connection.openConnection();
     }
 
     public void createProduct(Product product) {
-        Driver driver = connection.openConnection();
         try (Session session = driver.session()) {
-            StatementResult result = session.run("CREATE (p:Product{code : $code, description : $description, price : $price}) RETURN id(p) as id",
+            session.run("CREATE (p:Product{code : $code, description : $description, price : $price}) RETURN id(p) as id",
                     Values.parameters("code", product.getCode(), "description", product.getDescription(), "price", product.getPrice()));
         }
     }
 
     public Product getProductById(String code) {
-        Driver driver = connection.openConnection();
         try (Session session = driver.session()) {
             StatementResult result = session.run("MATCH (p:Product) "
                     + "WHERE p.code = $code "
@@ -44,17 +44,15 @@ public class ProductService implements Serializable {
                 String codeTemp = record.get("code").asString();
                 String description = record.get("description").asString();
                 float price = record.get("price").asFloat();
-                return new Product(code, description, price);
+                return new Product(codeTemp, description, price);
             }
             return null;
         }
     }
 
     public void createRelationShip(String code, String code2) {
-        ConnectionNeo4j connection = new ConnectionNeo4j();
-        Driver driver = connection.openConnection();
         try (Session session = driver.session()) {
-            StatementResult result = session.run("MATCH (p:Product), (p2:Product) "
+            session.run("MATCH (p:Product), (p2:Product) "
                     + "WHERE p.code = $code AND p2.code = $code2 "
                     + "CREATE (p)-[r:FRIEND]->(p2) "
                     + "RETURN p, p2, r",
